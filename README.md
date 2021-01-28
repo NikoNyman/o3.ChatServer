@@ -1,4 +1,4 @@
-# ChatServer Harkkaty”
+# ChatServer
 
 * Niko Nyman
 
