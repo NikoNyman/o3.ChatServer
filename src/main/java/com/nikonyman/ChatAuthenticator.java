@@ -2,21 +2,28 @@ package com.nikonyman;
 
 import java.util.Hashtable;
 import java.util.Map;
+
 import com.sun.net.httpserver.BasicAuthenticator;
 
+// Luokka jolla tarkistetaan voiko käyttäjä chätätä //
+
 public class ChatAuthenticator extends BasicAuthenticator {
-  private Map<String, String> users = null;
+
+  private Map<String,User> users;
 
   public ChatAuthenticator() {
     super("chat");
-    users = new Hashtable<String, String>();
-    users.put("dummy", "passwd");
+    users = new Hashtable<String, User>();
+    
   }
 
+  
+// Tarkistetaan onko käyttäjä tiedot oikeat //
   @Override
   public boolean checkCredentials(String username, String password) {
     if (users.containsKey(username)) {
-      if (users.get(username).equals(password)) {
+      String pword = users.get(username).getPassword();
+      if (pword.equals(password)) {
 
         return true;
       }
@@ -26,13 +33,15 @@ public class ChatAuthenticator extends BasicAuthenticator {
 
   }
 
-  public boolean addUser(String userName, String password) {
-    if (users.containsKey(userName)) {
-      return false;
-    } else {
-      users.put(userName, password);
-      return true;
-    }
-
+  // Lisätään uusi käyttäjä mikäli käyttäjänimi ei ole varattu //
+public boolean addUser(String username, String password, String email) {
+  if (users.containsKey(username)) {
+    return false;
+  } else {
+    User newuser = new User (username, password, email);
+    users.put(username, newuser);
+    return true;
   }
+ }
+
 }

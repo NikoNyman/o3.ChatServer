@@ -15,6 +15,8 @@ import com.nikonyman.ChatHandler;
 import com.nikonyman.RegistrationHandler;
 import com.sun.net.httpserver.*;
 
+// Main class //
+
 public class ChatServer {
 
     public static void main(String[] args) {
@@ -30,13 +32,12 @@ public class ChatServer {
                     params.setSSLParameters(sslparams);
                 }
             });
-            HttpContext httpContext = server.createContext("/chat", new ChatHandler());
             ChatAuthenticator aut = new ChatAuthenticator();
-            httpContext.setAuthenticator(aut);
-
-            HttpContext httpContext2 = server.createContext("/registration", new RegistrationHandler(aut));
-            
-
+            HttpContext chatContext = server.createContext("/chat", new ChatHandler());
+            chatContext.setAuthenticator(aut);
+            server.createContext("/registration", new RegistrationHandler(aut));
+            server.setExecutor(null);
+            log("Starting Chatserver!");
             server.start();
 
         } catch (FileNotFoundException e) {
@@ -66,5 +67,10 @@ public class ChatServer {
         ssl.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
         return ssl;
+    }
+
+
+    public static void log(String message){
+        System.out.println(message);
     }
 }
