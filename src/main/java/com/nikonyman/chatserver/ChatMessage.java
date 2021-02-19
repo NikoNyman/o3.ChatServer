@@ -1,6 +1,8 @@
 package com.nikonyman.chatserver;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 // Luokka jonka avulla pidetään chat messaget muistissa //
 
@@ -16,6 +18,11 @@ public class ChatMessage {
     sent = time;
 
     }
+    long dateAsInt() {
+        return sent.toInstant(ZoneOffset.UTC).toEpochMilli();
 }
 
-
+    void setSent(long epoch) {
+    sent = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneOffset.UTC);
+    }
+}
