@@ -26,7 +26,6 @@ public class ChatServer {
             database.open(dbname);
             HttpsServer server = HttpsServer.create(new InetSocketAddress(8001), 0);
             SSLContext sslContext = chatServerSSLContext();
-            
 
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
                 public void configure(HttpsParameters params) {
@@ -41,7 +40,7 @@ public class ChatServer {
             chatContext.setAuthenticator(aut);
             server.createContext("/registration", new RegistrationHandler(aut));
             server.setExecutor(null);
-            
+
             log("Starting Chatserver!");
             server.start();
 
@@ -74,8 +73,7 @@ public class ChatServer {
         return ssl;
     }
 
-
-    public static void log(String message){
+    public static void log(String message) {
         System.out.println(message);
     }
 }

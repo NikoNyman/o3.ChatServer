@@ -1,6 +1,5 @@
 package com.nikonyman.chatserver;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
@@ -11,18 +10,17 @@ public class ChatMessage {
     public String nick;
     public String message;
 
-
-    public ChatMessage(LocalDateTime time, String name, String ms){
-    nick = name;
-    message = ms;
-    sent = time;
+    public ChatMessage(LocalDateTime time, String name, String ms) {
+        nick = name;
+        message = ms;
+        sent = time;
 
     }
-    long dateAsInt() {
+
+    public long dateAsInt() {
         return sent.toInstant(ZoneOffset.UTC).toEpochMilli();
-}
-
-    void setSent(long epoch) {
-    sent = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneOffset.UTC);
     }
+
+
+
 }

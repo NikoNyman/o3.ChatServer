@@ -85,7 +85,7 @@ public class RegistrationHandler implements HttpHandler {
         } catch (IOException e) {
             code = 500;
             errorMessage = "Error in handling the request: " + e.getMessage();
-       
+
         } catch (JSONException e) {
             e.printStackTrace();
             errorMessage = "JSON file not valid";
@@ -94,7 +94,6 @@ public class RegistrationHandler implements HttpHandler {
         } catch (Exception e) {
             code = 500;
             errorMessage = "Internal server error: " + e.getMessage();
-        
 
         }
         if (code < 200 || code > 299) {

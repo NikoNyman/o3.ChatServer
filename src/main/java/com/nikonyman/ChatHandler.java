@@ -10,13 +10,16 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
+import com.nikonyman.chatserver.ChatDatabase;
 import com.nikonyman.chatserver.ChatMessage;
 import com.nikonyman.chatserver.ChatServer;
 import com.sun.net.httpserver.Headers;
@@ -31,8 +34,6 @@ import org.json.JSONObject;
 public class ChatHandler implements HttpHandler {
 
     String errorMessage = "";
-
-    private ArrayList<ChatMessage> messages = new ArrayList<ChatMessage>();
 
     // Handlessä otetaan selvää clientin pyyntö ja sitten siirrytään hoitamaan se //
     @Override
@@ -67,7 +68,8 @@ public class ChatHandler implements HttpHandler {
         }
 
     }
-        // Hoidetaan POST //
+
+    // Hoidetaan POST //
     private int handleChatMessageFromClient(HttpExchange exchange) throws Exception {
         int code = 200;
         Headers headers = exchange.getRequestHeaders();
@@ -104,9 +106,10 @@ public class ChatHandler implements HttpHandler {
             String nickName = ChatMessage.get("user").toString();
             String message = ChatMessage.getString("message");
 
+            ChatDatabase database = ChatDatabase.getInstance();
             ChatMessage newMessage = new ChatMessage(sent, nickName, message);
-            if (!text.isEmpty()) {
-                messages.add(newMessage);
+            long time = newMessage.dateAsInt();
+            if (database.insertMessageToDatabase(nickName, message, time)) {
                 exchange.sendResponseHeaders(code, -1);
                 ChatServer.log("New message saved");
 
@@ -124,9 +127,31 @@ public class ChatHandler implements HttpHandler {
         return code;
 
     }
-        // Hoidetaan GET pyynnöt //
+
+    // Hoidetaan GET pyynnöt //
     private int handleGetRequestFromClient(HttpExchange exchange) throws IOException, SQLException {
         int code = 200;
+        ChatDatabase database = ChatDatabase.getInstance();
+        ArrayList<ChatMessage> messages = new ArrayList<ChatMessage>();
+        messages.addAll(database.readChatmessages());
+
+
+
+        DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss.SSS z", Locale.ENGLISH);
+        Headers ifmodified = exchange.getRequestHeaders();
+
+        if (ifmodified.containsKey("If-Modified-Since")) {
+            String modsince = ifmodified.getFirst("If-Modified-Since");
+            ZonedDateTime modsinceDateTime = ZonedDateTime.parse(modsince, formatter2);
+
+            LocalDateTime fromWhichDate = modsinceDateTime.toLocalDateTime();
+            long messagesSince = -1;
+            messagesSince = fromWhichDate.toInstant(ZoneOffset.UTC).toEpochMilli();
+           messages =  database.getMessages(messagesSince);
+
+        }else{
+            messages.addAll(database.readChatmessages());
+        }
 
         if (messages.isEmpty()) {
             ChatServer.log("No new messages to deliver to client");
@@ -134,28 +159,38 @@ public class ChatHandler implements HttpHandler {
             exchange.sendResponseHeaders(code, -1);
             return code;
         }
-        Collections.sort(messages, 
-        (ChatMessage lhs, ChatMessage rhs) -> 
-        lhs.sent.compareTo(rhs.sent));
-
+        
         JSONArray responseMessages = new JSONArray();
 
-        // Hoidetaan viestien päivämäärät //
-
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-        String dateText = now.format(formatter);
+
+        LocalDateTime uusin = null;
+
         // For Loop jolla viestit lisätään JSONArrayhyn //
         for (ChatMessage message : messages) {
             JSONObject msg = new JSONObject();
-;
+            if (uusin == null) {
+                uusin = message.sent;
+            } else if (uusin.isBefore(message.sent)) {
+                uusin = message.sent;
+            }
+
+            ZonedDateTime now = message.sent.atZone(ZoneId.of("UTC"));
+            String dateText = now.format(formatter);
             msg.put("sent", dateText);
             msg.put("user", message.nick);
             msg.put("message", message.message);
             responseMessages.put(msg);
         }
         ChatServer.log("Delivering" + messages.size() + " messages to client");
-        
+
+        ZonedDateTime now2 = uusin.atZone(ZoneId.of("GMT"));
+        String uusinaika = now2.format(formatter2);
+
+        System.out.println(uusinaika);
+
+        exchange.getResponseHeaders().add("Last-Modified", uusinaika);
+
         String JSON = responseMessages.toString();
         byte[] bytes = JSON.getBytes("UTF-8");
         ChatServer.log(JSON);
@@ -167,7 +202,5 @@ public class ChatHandler implements HttpHandler {
         return code;
 
     }
-
-    
 
 }
