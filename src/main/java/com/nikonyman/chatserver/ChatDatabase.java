@@ -99,7 +99,7 @@ public class ChatDatabase {
     public ArrayList<ChatMessage> readChatmessages() throws SQLException {
 
         ArrayList<ChatMessage> messagestoread = new ArrayList<ChatMessage>();
-        String readMessages = "select * from MESSAGE limit 100";
+        String readMessages = "select * from MESSAGE order by SENT desc limit 100";
         Statement createStatement = con.createStatement();
         ResultSet rs = createStatement.executeQuery(readMessages);
 
@@ -148,7 +148,7 @@ public class ChatDatabase {
 
     public ArrayList<ChatMessage> getMessages(long since) throws SQLException {
         ArrayList<ChatMessage> messagesToGet = new ArrayList<ChatMessage>();
-        String readMessages = "select UNAME, SENT, MSG from MESSAGE where SENT >" + since + " order by SENT asc limit 100";
+        String readMessages = "select UNAME, SENT, MSG from MESSAGE where SENT >" + since + " order by SENT";
         Statement createStatement = con.createStatement();
         ResultSet rs = createStatement.executeQuery(readMessages);
 
@@ -163,5 +163,16 @@ public class ChatDatabase {
 
         }
         return messagesToGet;
-}       
+}     
+
+
+    public void close(){
+        try {
+            con.close();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+    }
 }

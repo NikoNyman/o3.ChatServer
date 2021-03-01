@@ -40,6 +40,8 @@ public class ChatHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         int code = 200;
         try {
+            System.out.println("Request handled in thread " + Thread.currentThread().getId());
+            
             if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
                 code = handleChatMessageFromClient(exchange);
             } else if (exchange.getRequestMethod().equalsIgnoreCase("GET")) {
@@ -133,7 +135,7 @@ public class ChatHandler implements HttpHandler {
         int code = 200;
         ChatDatabase database = ChatDatabase.getInstance();
         ArrayList<ChatMessage> messages = new ArrayList<ChatMessage>();
-        messages.addAll(database.readChatmessages());
+        
 
 
 

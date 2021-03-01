@@ -1,9 +1,12 @@
 package com.nikonyman.chatserver;
 
+import java.io.Console;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -22,10 +25,10 @@ public class ChatServer {
     public static void main(String[] args) {
         try {
             ChatDatabase database = ChatDatabase.getInstance();
-            String dbname = "C:\\Users\\nikop\\Desktop\\ChatServer\\chatserver\\03-chat-db";
+            String dbname = args[0];
             database.open(dbname);
             HttpsServer server = HttpsServer.create(new InetSocketAddress(8001), 0);
-            SSLContext sslContext = chatServerSSLContext();
+            SSLContext sslContext = chatServerSSLContext(args[1] ,args [2]);
 
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
                 public void configure(HttpsParameters params) {
@@ -39,10 +42,20 @@ public class ChatServer {
             HttpContext chatContext = server.createContext("/chat", new ChatHandler());
             chatContext.setAuthenticator(aut);
             server.createContext("/registration", new RegistrationHandler(aut));
-            server.setExecutor(null);
+            ExecutorService excr = Executors.newCachedThreadPool();
+            server.setExecutor(excr);
 
             log("Starting Chatserver!");
             server.start();
+            Console c= System.console();
+            Boolean running = true;
+
+            while(running){
+                if(c.readLine().equals("/quit")) {
+                    server.stop(3);
+                    database.close();
+                }
+            }
 
         } catch (FileNotFoundException e) {
             // Certificate file not found!
@@ -56,10 +69,11 @@ public class ChatServer {
 
     }
 
-    private static SSLContext chatServerSSLContext() throws Exception {
-        char[] passphrase = "Ohj3lm01nt134v41n".toCharArray();
+    private static SSLContext chatServerSSLContext(String args, String args2) throws Exception {
+        char[] passphrase = args2.toCharArray();
+        String fileName =  args;
         KeyStore ks = KeyStore.getInstance("JKS");
-        ks.load(new FileInputStream("keystore.jks"), passphrase);
+        ks.load(new FileInputStream(fileName), passphrase);
 
         KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
         kmf.init(ks, passphrase);
