@@ -16,7 +16,7 @@ public class ChatMessage {
         sent = time;
 
     }
-
+    // Palautetaan päivämäärä numerona //
     public long dateAsInt() {
         return sent.toInstant(ZoneOffset.UTC).toEpochMilli();
     }

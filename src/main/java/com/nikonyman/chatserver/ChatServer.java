@@ -23,12 +23,13 @@ import com.sun.net.httpserver.*;
 public class ChatServer {
 
     public static void main(String[] args) {
+        // Avataan serveri try catch:in sisällä //
         try {
             ChatDatabase database = ChatDatabase.getInstance();
             String dbname = args[0];
             database.open(dbname);
             HttpsServer server = HttpsServer.create(new InetSocketAddress(8001), 0);
-            SSLContext sslContext = chatServerSSLContext(args[1] ,args [2]);
+            SSLContext sslContext = chatServerSSLContext(args[1], args[2]);
 
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
                 public void configure(HttpsParameters params) {
@@ -47,11 +48,11 @@ public class ChatServer {
 
             log("Starting Chatserver!");
             server.start();
-            Console c= System.console();
+            Console c = System.console();
             Boolean running = true;
 
-            while(running){
-                if(c.readLine().equals("/quit")) {
+            while (running) {
+                if (c.readLine().equals("/quit")) {
                     server.stop(3);
                     database.close();
                 }
@@ -71,7 +72,7 @@ public class ChatServer {
 
     private static SSLContext chatServerSSLContext(String args, String args2) throws Exception {
         char[] passphrase = args2.toCharArray();
-        String fileName =  args;
+        String fileName = args;
         KeyStore ks = KeyStore.getInstance("JKS");
         ks.load(new FileInputStream(fileName), passphrase);
 

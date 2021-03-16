@@ -27,6 +27,7 @@ public class RegistrationHandler implements HttpHandler {
         auth = authenticator;
     }
 
+    // Handle joka suorittaa uuden käyttäjän lisäämisen chatserveriin //
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         int code = 200;
@@ -65,22 +66,25 @@ public class RegistrationHandler implements HttpHandler {
                     String username = registrationMsg.get("username").toString();
                     String password = registrationMsg.getString("password");
                     String email = registrationMsg.getString("email");
-                    if (!username.isEmpty() || !password.isEmpty() || !email.isEmpty()){
-                    if (auth.addUser(username, password, email)) {
-                        exchange.sendResponseHeaders(code, -1);
-                        ChatServer.log("User added");
-                        
+                    username.trim();
+                    password.trim();
+                    email.trim();
+                    if (!username.isEmpty() || !password.isEmpty() || !email.isEmpty()) {
+                        if (auth.addUser(username, password, email)) {
+                            exchange.sendResponseHeaders(code, -1);
+                            ChatServer.log("User added");
+                            // Error handling //
+                        } else {
+                            code = 400;
+                            errorMessage = "Invalid user credentials";
+                            ChatServer.log(errorMessage);
+                        }
                     } else {
                         code = 400;
                         errorMessage = "Invalid user credentials";
                         ChatServer.log(errorMessage);
                     }
                 } else {
-                    code = 400;
-                    errorMessage = "Invalid user credentials";
-                    ChatServer.log(errorMessage);
-                }
-            }else {
                     code = 411;
                     errorMessage = "Content-type must be application/json.";
                     ChatServer.log(errorMessage);

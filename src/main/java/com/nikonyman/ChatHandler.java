@@ -14,8 +14,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -41,7 +40,7 @@ public class ChatHandler implements HttpHandler {
         int code = 200;
         try {
             System.out.println("Request handled in thread " + Thread.currentThread().getId());
-            
+
             if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
                 code = handleChatMessageFromClient(exchange);
             } else if (exchange.getRequestMethod().equalsIgnoreCase("GET")) {
@@ -135,9 +134,6 @@ public class ChatHandler implements HttpHandler {
         int code = 200;
         ChatDatabase database = ChatDatabase.getInstance();
         ArrayList<ChatMessage> messages = new ArrayList<ChatMessage>();
-        
-
-
 
         DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss.SSS z", Locale.ENGLISH);
         Headers ifmodified = exchange.getRequestHeaders();
@@ -149,9 +145,9 @@ public class ChatHandler implements HttpHandler {
             LocalDateTime fromWhichDate = modsinceDateTime.toLocalDateTime();
             long messagesSince = -1;
             messagesSince = fromWhichDate.toInstant(ZoneOffset.UTC).toEpochMilli();
-           messages =  database.getMessages(messagesSince);
+            messages = database.getMessages(messagesSince);
 
-        }else{
+        } else {
             messages.addAll(database.readChatmessages());
         }
 
@@ -161,7 +157,7 @@ public class ChatHandler implements HttpHandler {
             exchange.sendResponseHeaders(code, -1);
             return code;
         }
-        
+
         JSONArray responseMessages = new JSONArray();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
